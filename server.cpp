@@ -10,6 +10,7 @@
 #include <cstring>
 #include <netinet/in.h>
 #include <vector>
+#include "SocketClass.hpp"
 
 #define ERROR_S "SERVER ERROR: "
 #define DEFAULT_PORT 1602
@@ -34,8 +35,8 @@ void newClient(std::vector<pollfd> &poll_sets, const int &newSocket) {
 
 void deleteClient(std::vector<pollfd> &poll_sets, std::vector<pollfd>::iterator &it) {
 	poll_sets.erase(it);
-    std::cout << "no connect" << it->fd << std::endl;
-    close(it->fd);
+	std::cout << "no connect" << it->fd << std::endl;
+	close(it->fd);
 }
 
 void sendClient(const int &fd, const std::string &message) {
@@ -50,54 +51,58 @@ std::string recvClient(const int &fd) {
 }
 
 int main(int argc, char **argv) {
-	int listenSocket;
-
-	struct sockaddr_in addrStruct;
-
+	Socket socket;
+	//int listenSocket;
 	// Создать соккет
-	listenSocket = socket(AF_INET, SOCK_STREAM, 0);
+	//listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 	//Проверка соккета
-	if (listenSocket < 0) {
-		std::cout << ERROR_S << "establishing socket error.\n";
-		exit (0);
-	}
+	//if (listenSocket < 0) {
+	//	std::cout << ERROR_S << "establishing socket error.\n";
+	//	exit (0);
+	//}
 
 	std::cout << "Server: Socket for server was successfully created.\n";
 
-	int ret = 1;
+	socket.setOptSocket();
+	//int ret = 1;
 	// Устраняем проблему залипшего соккета
-    if (setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &ret, sizeof(ret)) == -1)
-    {
-       std::cerr << "set_reuse_addr error\n";
-       exit(1);
-    }
+    //if (setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &ret, sizeof(ret)) == -1)
+    //{
+       //std::cerr << "set_reuse_addr error\n";
+       //exit(1);
+    //}
 
+	struct sockaddr_in addrStruct;
 	addrStruct.sin_family = AF_INET;
 	addrStruct.sin_port = htons(DEFAULT_PORT);
 	addrStruct.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	socklen_t size = sizeof(addrStruct);
-
-	// Снабдить соккет адресом
-	ret = bind(listenSocket, reinterpret_cast<struct sockaddr*>(&addrStruct), size);
-
-	if (ret < 0) {
-		std::cerr << ERROR_S << "binding connection. Socket already been establishing.\n";
-		exit(1);
-	}
+	socket.bindSocket(addrStruct);
+	//Снабдить соккет адресом
+	int ret;
+	//ret = bind(socket.getSocket(), reinterpret_cast<struct sockaddr*>(&addrStruct), size);
+	//
+	// if (ret < 0) {
+	// 	std::cerr << ERROR_S << "binding connection. Socket already been establishing.\n";
+	// 	exit(1);
+	// }
 	
-	size = sizeof(addrStruct);
-	std::cout << "SERVER: Listening socket...\n";
+	//size = sizeof(addrStruct);
+	//std::cout << "SERVER: Listening socket...\n";
 	// Процесс прослушки порта
-	if (listen(listenSocket, 1) == -1) {
-		std::cerr << "error listen socket\n";
-		exit(1);
-	}
+	// if (listen(listenSocket, 1) == -1) {
+	// 	std::cerr << "error listen socket\n";
+	// 	exit(1);
+	// }
+	socket.listenSocket(128);
 
 	int newSocket;
-	std::cout << "Client listened\n";
+	//std::cout << "Client listened\n";
 	//перегоняем биты/байты
-	fcntl(listenSocket, F_SETFL, fcntl(listenSocket, F_GETFL) | O_NONBLOCK);
+	//fcntl(listenSocket, F_SETFL, fcntl(listenSocket, F_GETFL) | O_NONBLOCK);
+	socket.setNonBlockSocket();
+	int listenSocket = socket.getSocket();
 	std::vector<pollfd> poll_sets;
 	newClient(poll_sets, listenSocket);
 	while (1) {
