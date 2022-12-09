@@ -18,7 +18,10 @@ public:
 	};
 
 	explicit PollManager(const Socket &listen);
+	PollManager();
 
+	void clear();
+	void setListen(const Socket &listen);
 	size_t countClients() const;
 	pollfd &operator[](const size_t &index);
 
