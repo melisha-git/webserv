@@ -31,8 +31,6 @@ public:
 	void bindSocket(struct sockaddr_in &addr);
 	void listenSocket(const int &);
 	void setNonBlockSocket();
-
-	~Socket();
 };
 
 #endif

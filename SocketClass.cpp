@@ -53,11 +53,6 @@ void Socket::setNonBlockSocket() {
 	fcntl(this->socket_, F_SETFL, fcntl(this->socket_, F_GETFL) | O_NONBLOCK);
 }
 
-Socket::~Socket() {
-	close(this->socket_);
-	std::cout << "Sock destruct\n";
-}
-
 Socket::SocketException::SocketException(const std::string &message) : message_(message) {}
 
 const char * Socket::SocketException::what() const throw() {
