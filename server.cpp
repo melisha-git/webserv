@@ -52,57 +52,26 @@ std::string recvClient(const int &fd) {
 
 int main(int argc, char **argv) {
 	Socket socket;
-	//int listenSocket;
-	// Создать соккет
-	//listenSocket = socket(AF_INET, SOCK_STREAM, 0);
-	//Проверка соккета
-	//if (listenSocket < 0) {
-	//	std::cout << ERROR_S << "establishing socket error.\n";
-	//	exit (0);
-	//}
 
 	std::cout << "Server: Socket for server was successfully created.\n";
-
-	socket.setOptSocket();
-	//int ret = 1;
-	// Устраняем проблему залипшего соккета
-    //if (setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &ret, sizeof(ret)) == -1)
-    //{
-       //std::cerr << "set_reuse_addr error\n";
-       //exit(1);
-    //}
 
 	struct sockaddr_in addrStruct;
 	addrStruct.sin_family = AF_INET;
 	addrStruct.sin_port = htons(DEFAULT_PORT);
 	addrStruct.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	socklen_t size = sizeof(addrStruct);
-	socket.bindSocket(addrStruct);
-	//Снабдить соккет адресом
+	try {
+		socket.setOptSocket();
+		socklen_t size = sizeof(addrStruct);
+		socket.bindSocket(addrStruct);
+		socket.listenSocket(128);
+		socket.setNonBlockSocket();
+	} catch (Socket::SocketException &e) {
+		std::cerr << e.what() << std::endl;
+	}
 	int ret;
-	//ret = bind(socket.getSocket(), reinterpret_cast<struct sockaddr*>(&addrStruct), size);
-	//
-	// if (ret < 0) {
-	// 	std::cerr << ERROR_S << "binding connection. Socket already been establishing.\n";
-	// 	exit(1);
-	// }
-	
-	//size = sizeof(addrStruct);
-	//std::cout << "SERVER: Listening socket...\n";
-	// Процесс прослушки порта
-	// if (listen(listenSocket, 1) == -1) {
-	// 	std::cerr << "error listen socket\n";
-	// 	exit(1);
-	// }
-	socket.listenSocket(128);
-
 	int newSocket;
-	//std::cout << "Client listened\n";
-	//перегоняем биты/байты
-	//fcntl(listenSocket, F_SETFL, fcntl(listenSocket, F_GETFL) | O_NONBLOCK);
-	socket.setNonBlockSocket();
-	int listenSocket = socket.getSocket();
+	int listenSocket = socket.get();
 	std::vector<pollfd> poll_sets;
 	newClient(poll_sets, listenSocket);
 	while (1) {
@@ -142,10 +111,10 @@ int main(int argc, char **argv) {
                 }
 			} else if (it->revents & POLLERR) {
 				if (it->fd == listenSocket) {
-                    std::cerr << "listen socket error\n";
-                    exit(1);
+ 					std::cerr << "listen socket error\n";
+					exit(1);
                 } else
-                    deleteClient(poll_sets, it);
+					deleteClient(poll_sets, it);
 			}
 		}
 	}
