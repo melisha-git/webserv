@@ -3,8 +3,13 @@
 Socket::Socket() {
 	// Активация соккета
 	this->socket_ = socket(AF_INET, SOCK_STREAM, 0);
-	if (this->socket_ < 0)
-		throw Socket::SocketException("Error: establishing socket error.");
+	try {
+		if (this->socket_ < 0)
+			throw Socket::SocketException("Error: establishing socket error.");
+	} catch(const Socket::SocketException &e) {
+		std::cerr << e.what();
+		exit(0);
+	}
 }
 
 Socket::Socket(const int &fd) {

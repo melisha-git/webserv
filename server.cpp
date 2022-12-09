@@ -68,6 +68,7 @@ int main(int argc, char **argv) {
 		socket.setNonBlockSocket();
 	} catch (Socket::SocketException &e) {
 		std::cerr << e.what() << std::endl;
+		exit(0);
 	}
 	int ret;
 	int newSocket;
