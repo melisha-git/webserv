@@ -27,7 +27,7 @@ pollfd &PollManager::operator[](const size_t &index) {
 
 void PollManager::start() {
 	if (poll(dynamic_cast<pollfd *>(&this->pollSets_[0]), this->countClients(), -1) <= 0)
-		throw PollManager::PollException("Poll function error");
+		throw Exceptions("Poll function error");
 }
 
 int PollManager::acceptNewClient(struct sockaddr *addr) {
@@ -45,8 +45,8 @@ void PollManager::newClient(const Socket &newSocket) {
 }
 
 void PollManager::deleteClient(const size_t &index) {
-	std::vector<pollfd>::iterator it = this->pollSets_.begin() + index - 1;
-	this->pollSets_.erase(it);
+	std::vector<pollfd>::iterator it = this->pollSets_.begin() + index;
+	this->pollSets_.erase(it, it);
 	std::cout << "no connect " << it->fd << std::endl;
 	close(it->fd);
 }
@@ -55,15 +55,9 @@ void PollManager::sendClient(const Socket &socket, const std::string &message) {
 	send(socket.get(), message.c_str(), message.size(), 0);
 }
 
-std::string PollManager::recvClient(const Socket &socket) {
-	char message[1024] = {0};
-	int readSize = recv(socket.get(), message, 1024, 0);
-	std::string result = readSize <= 0 ? std::string() : std::string(message);
-	return result;
-}
-
-PollManager::PollException::PollException(const std::string &message) : message_(message) {}
-
-const char * PollManager::PollException::what() const throw() {
-	return (this->message_.c_str());
+int PollManager::recvClient(const Socket &socket, std::string &message) {
+	char mess[1024] = {0};
+	int readSize = recv(socket.get(), mess, 1024, 0);
+	message = std::string(mess);
+	return readSize;
 }

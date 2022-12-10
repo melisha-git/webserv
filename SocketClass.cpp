@@ -3,13 +3,8 @@
 Socket::Socket() {
 	// Активация соккета
 	this->socket_ = socket(AF_INET, SOCK_STREAM, 0);
-	try {
-		if (this->socket_ < 0)
-			throw Socket::SocketException("Error: establishing socket error.");
-	} catch(const Socket::SocketException &e) {
-		std::cerr << e.what();
-		exit(0);
-	}
+	if (this->socket_ < 0)
+		throw Exceptions("Error: establishing socket error.");
 }
 
 Socket::Socket(const int &fd) {
@@ -33,7 +28,7 @@ Socket &Socket::operator=(const Socket &other) {
 void Socket::setOptSocket(const int &level, const int &optName) {
 	int number = 1;
 	if (setsockopt(this->socket_, level, optName, &number, sizeof(number)) == -1)
-		throw Socket::SocketException("Error: set_reuse_addr error");
+		throw Exceptions("Error: set_reuse_addr error");
 }
 
 void Socket::bindSocket(struct sockaddr_in &addr) {
@@ -41,20 +36,14 @@ void Socket::bindSocket(struct sockaddr_in &addr) {
 	//Снабдить соккет адресом
 	int ret = bind(this->socket_, reinterpret_cast<struct sockaddr*>(&addr), size);
 	if (ret < 0)
-		throw Socket::SocketException("Error: binding connection. Socket already been establishing.");
+		throw Exceptions("Error: binding connection. Socket already been establishing.");
 }
 
 void Socket::listenSocket(const int &maxQuequClients) {
 	if (listen(this->socket_, maxQuequClients) == -1)
-		throw Socket::SocketException("Error: listen socket");
+		throw Exceptions("Error: listen socket");
 }
 
 void Socket::setNonBlockSocket() {
 	fcntl(this->socket_, F_SETFL, fcntl(this->socket_, F_GETFL) | O_NONBLOCK);
-}
-
-Socket::SocketException::SocketException(const std::string &message) : message_(message) {}
-
-const char * Socket::SocketException::what() const throw() {
-	return (this->message_.c_str());
 }

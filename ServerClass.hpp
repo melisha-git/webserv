@@ -2,6 +2,7 @@
 #define SERVER_CLASS_HPP
 
 #include <netinet/in.h>
+#include "ExceptionClass.hpp"
 #include "SocketClass.hpp"
 #include "PollManager.hpp"
 
@@ -11,6 +12,7 @@ private:
 	struct sockaddr_in addr_;
 	PollManager	pollManager_;
 public:
+	Server(const struct sockaddr_in addr, const Socket &listen, const size_t &port= 1602, const std::string &ip = "127.0.0.1");
 	Server(const Socket &listen, const size_t &port = 1602, const std::string &ip = "127.0.0.1");
 	Server(const size_t &port = 1602, const std::string &ip = "127.0.0.1");
 	void start();

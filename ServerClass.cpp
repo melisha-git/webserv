@@ -1,25 +1,22 @@
 #include "ServerClass.hpp"
 
+Server::Server(const struct sockaddr_in addr, const Socket &listen, const size_t &port, const std::string &ip) : addr_(addr), listenSock_(listen) {
+	this->pollManager_.setListen(listenSock_);
+}
+
 Server::Server(const Socket &listen, const size_t &port, const std::string &ip) : listenSock_(listen) {
-	this->_initSockAddr(port, ip);
-	this->pollManager_.setListen(listen);
+	(*this) = Server(this->addr_, this->listenSock_, port, ip);
 }
 
 Server::Server(const size_t &port, const std::string &ip) {
 	this->_initSockAddr(port, ip);
 	this->_initSocket(this->listenSock_);
-	(*this) = Server(this->listenSock_, port, ip);
+	(*this) = Server(this->addr_, this->listenSock_, port, ip);
 }
 
 void Server::start() {
 	while (1) {
-		try {
-			this->pollManager_.start();
-		}
-		catch (const PollManager::PollException &e) {
-			std::cerr << e.what() << std::endl;
-			exit(0);
-		}
+		this->pollManager_.start();
 		this->_serviceAllSockets();
 	}
 }
@@ -43,7 +40,7 @@ void Server::_pollIn(const size_t &index) {
 void Server::_addSocket() {
 	Socket client(this->pollManager_.acceptNewClient(reinterpret_cast<struct sockaddr*>(&this->addr_)));
 	if (client.get() == -1)
-		std::cout << "Error: Can't accepting client.\n";
+		std::cout << "Can't accepting client.\n";
 	else if (this->pollManager_.countClients() <= 10)
 		this->pollManager_.newClient(client);
 	else {
@@ -55,8 +52,8 @@ void Server::_addSocket() {
 }
 
 void Server::_writer(const size_t &index) {
-	std::string message = this->pollManager_.recvClient(this->pollManager_[index].fd);
-	if (message == std::string())
+	std::string message;
+	if ((this->pollManager_.recvClient(this->pollManager_[index].fd, message)) <=0)
 		this->pollManager_.deleteClient(index);
     else {
 		message = "=> Client " + std::to_string(this->pollManager_[index].fd) + ": " + message;
@@ -69,23 +66,17 @@ void Server::_writer(const size_t &index) {
 }
 
 void Server::_pollErr(const size_t &index) {
-	if (this->pollManager_[index].fd == this->listenSock_.get()) {
-		std::cerr << "listen socket error\n";
-		exit(1);
-    } else
+	if (this->pollManager_[index].fd == this->listenSock_.get())
+		throw Exceptions("listen socket error");
+	else
 		this->pollManager_.deleteClient(index);
 }
 
 void Server::_initSocket(Socket &socket) {
-	try {
-		socket.setOptSocket();
-		socket.bindSocket(this->addr_);
-		socket.listenSocket(128);
-		socket.setNonBlockSocket();
-	} catch (Socket::SocketException &e) {
-		std::cerr << e.what() << std::endl;
-		exit(0);
-	}
+	socket.setOptSocket();
+	socket.bindSocket(this->addr_);
+	socket.listenSocket(5);
+	socket.setNonBlockSocket();
 }
 
 void Server::_initSockAddr(const size_t &port, const std::string &ip) {

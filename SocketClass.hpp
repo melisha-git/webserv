@@ -1,6 +1,7 @@
 #ifndef SOCKET_CLASS_HPP
 #define SOCKET_CLASS_HPP
 
+#include "ExceptionClass.hpp"
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
@@ -12,14 +13,6 @@ class Socket {
 private:
 	int		socket_;
 public:
-	class SocketException : public std::exception {
-	private:
-		std::string message_;
-	public:
-		virtual const char * what() const throw();
-		SocketException(const std::string &);
-	};
-
 	Socket();
 	Socket(const int& fd);
 	Socket(const Socket &);
