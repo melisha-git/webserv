@@ -1,8 +1,8 @@
 #ifndef POLL_MANAGER_HPP
 #define POLL_MANAGER_HPP
 
-#include "SocketClass.hpp"
-#include "ExceptionClass.hpp"
+#include "../SocketClass/SocketClass.hpp"
+#include "../ExceptionClass/ExceptionClass.hpp"
 #include <poll.h>
 #include <vector>
 

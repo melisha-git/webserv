@@ -1,6 +1,4 @@
-#include "SocketClass.hpp"
-#include "PollManager.hpp"
-#include "ServerClass.hpp"
+#include "./ServerClass/ServerClass.hpp"
 
 int main(int argc, char **argv) {
 	try {

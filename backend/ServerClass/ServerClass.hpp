@@ -2,9 +2,10 @@
 #define SERVER_CLASS_HPP
 
 #include <netinet/in.h>
-#include "ExceptionClass.hpp"
-#include "SocketClass.hpp"
-#include "PollManager.hpp"
+#include "../ExceptionClass/ExceptionClass.hpp"
+#include "../SocketClass/SocketClass.hpp"
+#include "../PollManager/PollManager.hpp"
+#include "../MessageClass/Request/RequestClass.hpp"
 
 class Server {
 private:

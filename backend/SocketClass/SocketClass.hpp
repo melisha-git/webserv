@@ -1,7 +1,7 @@
 #ifndef SOCKET_CLASS_HPP
 #define SOCKET_CLASS_HPP
 
-#include "ExceptionClass.hpp"
+#include "../ExceptionClass/ExceptionClass.hpp"
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <arpa/inet.h>

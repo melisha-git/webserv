@@ -56,8 +56,9 @@ void Server::_writer(const size_t &index) {
 	if ((this->pollManager_.recvClient(this->pollManager_[index].fd, message)) <=0)
 		this->pollManager_.deleteClient(index);
     else {
+		Request request(message);
 		message = "=> Client " + std::to_string(this->pollManager_[index].fd) + ": " + message;
-		std::cout << message << std::endl;
+		//std::cout << message << std::endl;
 		for (int j = 0; j < this->pollManager_.countClients(); ++j) {
 			if (this->pollManager_[j].fd != this->pollManager_[index].fd)
 				this->pollManager_.sendClient(this->pollManager_[j].fd, message);
