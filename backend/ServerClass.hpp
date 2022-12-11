@@ -12,11 +12,11 @@ private:
 	struct sockaddr_in addr_;
 	PollManager	pollManager_;
 public:
-	Server(const struct sockaddr_in addr, const Socket &listen, const size_t &port= 1602, const std::string &ip = "127.0.0.1");
+	Server(const struct sockaddr_in addr, const Socket &listen, const size_t &port = 1602, const std::string &ip = "127.0.0.1");
 	Server(const Socket &listen, const size_t &port = 1602, const std::string &ip = "127.0.0.1");
 	Server(const size_t &port = 1602, const std::string &ip = "127.0.0.1");
+	
 	void start();
-
 private:
 	void _serviceAllSockets();
 	void _pollIn(const size_t &index);

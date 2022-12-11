@@ -9,6 +9,7 @@ private:
 public:
 	virtual const char * what() const throw();
 	Exceptions(const std::string &);
+	virtual ~Exceptions();
 };
 
 #endif
