@@ -1,4 +1,5 @@
 #include "ServerClass.hpp"
+#include <fstream>
 
 Server::Server(const struct sockaddr_in addr, const Socket &listen, const size_t &port, const std::string &ip) : addr_(addr), listenSock_(listen) {
 	this->pollManager_.setListen(listenSock_);
@@ -56,13 +57,15 @@ void Server::_writer(const size_t &index) {
 	if ((this->pollManager_.recvClient(this->pollManager_[index].fd, message)) <=0)
 		this->pollManager_.deleteClient(index);
     else {
-		Request request(message);
-		message = "=> Client " + std::to_string(this->pollManager_[index].fd) + ": " + message;
+		//Messages request(message);
+		std::string html = "<!DOCTYPE html>\n<html>\n<head>\n</head>\n<body>\n<h1>Welcome to webserv</h1>\n<img src=\"../../frontend/images/752775.jpg\" width=\"100%\"></img>\n</body>\n</html>";
+		message = "HTTP/1.1 202 OK\nServer: localhost\nContent-type: text/html\nContent-Lenght: " + std::to_string(html.size()) + "\nConnection: close\n\n" + html;
 		//std::cout << message << std::endl;
-		for (int j = 0; j < this->pollManager_.countClients(); ++j) {
-			if (this->pollManager_[j].fd != this->pollManager_[index].fd)
-				this->pollManager_.sendClient(this->pollManager_[j].fd, message);
-		}
+		this->pollManager_.sendClient(this->pollManager_[index].fd, message);
+		// for (int j = 0; j < this->pollManager_.countClients(); ++j) {
+		// 	if (this->pollManager_[j].fd != this->pollManager_[index].fd)
+		// 		this->pollManager_.sendClient(this->pollManager_[j].fd, message);
+		// }
     }
 }
 

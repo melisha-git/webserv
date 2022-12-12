@@ -5,8 +5,7 @@ FILES=./backend/server.cpp \
 		./backend/PollManager/PollManager.cpp \
 		./backend/ServerClass/ServerClass.cpp \
 		./backend/SocketClass/SocketClass.cpp \
-		./backend/MessageClass/AMessagesClass.cpp \
-		./backend/MessageClass/Request/RequestClass.cpp
+		./backend/MessageClass/MessagesClass.cpp
 
 all: clean server
 

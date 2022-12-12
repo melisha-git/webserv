@@ -5,7 +5,7 @@
 #include "../ExceptionClass/ExceptionClass.hpp"
 #include "../SocketClass/SocketClass.hpp"
 #include "../PollManager/PollManager.hpp"
-#include "../MessageClass/Request/RequestClass.hpp"
+#include "../MessageClass/MessagesClass.hpp"
 
 class Server {
 private:
