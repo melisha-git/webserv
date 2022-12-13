@@ -27,6 +27,7 @@ void print(std::vector<U> vc) {
 // TODO убрать в другой файл
 
 Messages::Messages(const std::string &request) {
+	//std::cout << request << std::endl;
 	std::vector<std::string> vRequest = split(request, "\n");
 	std::vector<std::string> utils = split(vRequest[0], " ");
 	std::vector<std::string>::iterator it = utils.begin();
@@ -34,13 +35,26 @@ Messages::Messages(const std::string &request) {
 	it = vRequest.begin() + 1;
 	this->setHeader(it, vRequest.end());
 	this->setBodyes(it, vRequest.end());
+	print(this->startLine_);
 }
 
 void Messages::setStartLine(std::vector<std::string>::iterator &begin, std::vector<std::string>::iterator end) {
 	if (begin + 2 >= end)
 		return;
 	this->startLine_["methood"] = *(begin++);
-	this->startLine_["URL"] = *(begin++);
+	while (begin != end && (*begin).find("HTTP") == -1) {
+		this->startLine_["URL"] = *(begin++);
+		if (this->startLine_["URL"] == "/")
+			this->startLine_["URL"] = "/index.html";
+		this->requestFile_.open("./frontend" + this->startLine_["URL"]);
+		if (this->requestFile_.is_open())
+			break;
+	}
+	if (!this->requestFile_.is_open())
+		this->startLine_["status"] = "404 Not Found";
+	else {
+		this->startLine_["status"] = "200 OK";
+	}
 	this->startLine_["version"] = *(begin);
 }
 
@@ -51,12 +65,38 @@ void Messages::setHeader(std::vector<std::string>::iterator &begin, std::vector<
 		std::vector<std::string> header = split(*begin, ":");
 		this->headers_[header[0]] = header[1];
 	}
+	if (this->startLine_["status"] == "200 OK") {
+		this->headers_["Server"] = "localhost";
+		this->headers_["Connection"] = this->startLine_["close"];
+	}
 }
 
 void Messages::setBodyes(std::vector<std::string>::iterator &begin, std::vector<std::string>::iterator end) {
-	for (; begin < end; ++begin) {
+	for (; this->startLine_["methood"] == "POST" && begin < end; ++begin) {
 		this->bodyes_.push_back(*begin);
 	}
+	std::string line;
+	size_t size = 0;
+	while (this->startLine_["methood"] == "GET" && std::getline(this->requestFile_, line)) {
+		size += line.size();
+		this->bodyes_.push_back(line);
+	}
+	this->headers_["Content-Lenght"] = std::to_string(size);
+	this->requestFile_.close();
+}
+
+std::string Messages::getResponse() {
+	std::string response;
+	response = this->startLine_["version"] + " " + this->startLine_["status"] + "\n";
+	for (auto header : this->headers_) {
+		response = response + (header.first + ": " + header.second + "\n");
+	}
+	response += "\n\n";
+	for (auto bodyLine : this->bodyes_) {
+		response = response + (bodyLine + "\n");
+	}
+	response += "\n\n";
+	return response;
 }
 
 std::map<std::string, std::string> Messages::startLine() const {
