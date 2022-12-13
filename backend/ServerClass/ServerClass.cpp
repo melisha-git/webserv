@@ -58,7 +58,7 @@ void Server::_writer(const size_t &index) {
 		this->pollManager_.deleteClient(index);
     else {
 		Messages mess(message);
-		message = mess.getResponse();
+		message = mess.response();
 		this->pollManager_.sendClient(this->pollManager_[index].fd, message);
     }
 }

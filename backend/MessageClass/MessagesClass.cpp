@@ -1,112 +1,34 @@
 #include "MessagesClass.hpp"
-#include <regex>
+#include "../Utils/Utils.hpp"
 
-// ! Прочие функции
-// TODO убрать в другой файл
-std::vector<std::string> split(const std::string &s, std::string dec) {
-	std::regex reg(dec);
-	std::sregex_token_iterator iter(s.begin(), s.end(), reg, -1);
-	std::sregex_token_iterator end;
-	return {iter, end};
+Messages::Messages(const std::string &request) : message_(request) {
+	std::vector<std::string> parts = utils::split(request, "\n\n");
+	std::vector<std::string> headers = utils::split(parts[0], "\n");
+	std::vector<std::string> bodyes;
+	if (parts.size() == 2)
+		bodyes = utils::split(parts[1], "\n");
+	this->message(headers, bodyes);
 }
 
-template <class U, class T>
-void print(std::map<U, T> mp) {
-	for (std::pair<U, T> p : mp)
-		std::cout << p.first << " " << p.second << std::endl;
-}
-
-template <class U>
-void print(std::vector<U> vc) {
-	int i = 0;
-	for (U c : vc)
-		std::cout << ++i << c << std::endl;
-}
-
-// ! Конец прочих функции
-// TODO убрать в другой файл
-
-Messages::Messages(const std::string &request) {
-	//std::cout << request << std::endl;
-	std::vector<std::string> vRequest = split(request, "\n");
-	std::vector<std::string> utils = split(vRequest[0], " ");
-	std::vector<std::string>::iterator it = utils.begin();
-	this->setStartLine(it, utils.end());
-	it = vRequest.begin() + 1;
-	this->setHeader(it, vRequest.end());
-	this->setBodyes(it, vRequest.end());
-	print(this->startLine_);
-}
-
-void Messages::setStartLine(std::vector<std::string>::iterator &begin, std::vector<std::string>::iterator end) {
-	if (begin + 2 >= end)
+void Messages::message(const std::vector<std::string> &headers, const std::vector<std::string> &bodyes) {
+	std::vector<std::string> startLine = utils::split(headers[0], " ");
+	this->message_ = startLine[2];
+	if (startLine[1] == "/")
+		startLine[1] = "/index.html";
+	std::ifstream file("./frontend" + startLine[1]);
+	if (!file.is_open()) {
+		this->message_ += "404 Not Found";
 		return;
-	this->startLine_["methood"] = *(begin++);
-	while (begin != end && (*begin).find("HTTP") == -1) {
-		this->startLine_["URL"] = *(begin++);
-		if (this->startLine_["URL"] == "/")
-			this->startLine_["URL"] = "/index.html";
-		this->requestFile_.open("./frontend" + this->startLine_["URL"]);
-		if (this->requestFile_.is_open())
-			break;
 	}
-	if (!this->requestFile_.is_open())
-		this->startLine_["status"] = "404 Not Found";
-	else {
-		this->startLine_["status"] = "200 OK";
-	}
-	this->startLine_["version"] = *(begin);
+	this->message_ += " 200 OK\n";
+	std::pair<int, std::vector<std::string> > vcFile = utils::fileReader(file);
+	file.close();
+	this->message_ += "Content-Length: " + std::to_string(vcFile.first) + "\n\n";
+	for (std::string line : vcFile.second)
+		message_ += line + "\n";
+	message_ += "\n";
 }
 
-void Messages::setHeader(std::vector<std::string>::iterator &begin, std::vector<std::string>::iterator end) {
-	for (;begin < end; ++begin) {
-		if ((*begin).find(':') == -1)
-			return ;
-		std::vector<std::string> header = split(*begin, ":");
-		this->headers_[header[0]] = header[1];
-	}
-	if (this->startLine_["status"] == "200 OK") {
-		this->headers_["Server"] = "localhost";
-		this->headers_["Connection"] = this->startLine_["close"];
-	}
-}
-
-void Messages::setBodyes(std::vector<std::string>::iterator &begin, std::vector<std::string>::iterator end) {
-	for (; this->startLine_["methood"] == "POST" && begin < end; ++begin) {
-		this->bodyes_.push_back(*begin);
-	}
-	std::string line;
-	size_t size = 0;
-	while (this->startLine_["methood"] == "GET" && std::getline(this->requestFile_, line)) {
-		size += line.size();
-		this->bodyes_.push_back(line);
-	}
-	this->headers_["Content-Lenght"] = std::to_string(size);
-	this->requestFile_.close();
-}
-
-std::string Messages::getResponse() {
-	std::string response;
-	response = this->startLine_["version"] + " " + this->startLine_["status"] + "\n";
-	for (auto header : this->headers_) {
-		response = response + (header.first + ": " + header.second + "\n");
-	}
-	response += "\n\n";
-	for (auto bodyLine : this->bodyes_) {
-		response = response + (bodyLine + "\n");
-	}
-	response += "\n\n";
-	return response;
-}
-
-std::map<std::string, std::string> Messages::startLine() const {
-	return this->startLine_;
-}
-
-std::map<std::string, std::string> Messages::header() const {
-	return this->headers_;
-}
-
-std::vector<std::string> Messages::bodyes() const {
-	return this->bodyes_;
+std::string Messages::response() {
+	return this->message_;
 }

@@ -9,21 +9,13 @@
 
 class Messages {
 protected:
-	std::ifstream requestFile_;
-	std::map<std::string, std::string> startLine_;
-	std::map<std::string, std::string> headers_;
-	std::vector<std::string> bodyes_;
+	std::string message_;
 public:
 	Messages(const std::string &);
 
-	void setStartLine(std::vector<std::string>::iterator &begin, std::vector<std::string>::iterator end);
-	void setHeader(std::vector<std::string>::iterator &begin, std::vector<std::string>::iterator end);
-	void setBodyes(std::vector<std::string>::iterator &begin, std::vector<std::string>::iterator end);
+	void message(const std::vector<std::string> &headers, const std::vector<std::string> &bodyes);
 
-	std::string getResponse();
-	std::map<std::string, std::string> startLine() const;
-	std::map<std::string, std::string> header() const;
-	std::vector<std::string> bodyes() const;
+	std::string response();
 };
 
 #endif
