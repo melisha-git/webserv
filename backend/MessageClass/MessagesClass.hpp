@@ -10,6 +10,7 @@
 class Messages {
 protected:
 	std::string message_;
+	static std::map<std::string, std::string> cache;
 public:
 	Messages(const std::string &);
 

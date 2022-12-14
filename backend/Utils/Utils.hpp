@@ -14,10 +14,10 @@ namespace utils {
 		return {iter, end};
 	}
 
-	std::pair<int, std::vector<std::string> > fileReader(std::ifstream &file) {
+	std::pair<size_t, std::vector<std::string> > fileReader(std::ifstream &file) {
 		std::vector<std::string> result;
 		std::string line;
-		int size = 0;
+		size_t size = 0;
 		while (std::getline(file, line)) {
 			size += line.size();
 			result.push_back(line);

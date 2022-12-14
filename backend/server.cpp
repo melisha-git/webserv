@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
 		s.start();
 	} catch(const Exceptions &e) {
 		std::cerr << e.what() << std::endl;
-		throw;
+		exit(0);
 	} catch (const std::exception &ex) {
 		std::cerr << ex.what() << std::endl;
 	}

@@ -11,8 +11,11 @@ size_t PollManager::countClients() const {
 }
 
 void PollManager::clear() {
-	while (!(this->pollSets_.empty()))
+	while (!(this->pollSets_.empty())) {
+		close(pollSets_[pollSets_.size() - 1].fd);
+		std::cout << "no connect " << pollSets_[pollSets_.size() - 1].fd << std::endl;
 		this->pollSets_.pop_back();
+	}
 }
 
 void PollManager::setListen(const Socket &listen) {
@@ -46,7 +49,7 @@ void PollManager::newClient(const Socket &newSocket) {
 
 void PollManager::deleteClient(const size_t &index) {
 	std::vector<pollfd>::iterator it = this->pollSets_.begin() + index;
-	this->pollSets_.erase(it, it);
+	this->pollSets_.erase(it);
 	std::cout << "no connect " << it->fd << std::endl;
 	close(it->fd);
 }
