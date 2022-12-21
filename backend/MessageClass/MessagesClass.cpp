@@ -12,7 +12,7 @@ Messages::Messages(const std::string &request) : message_(request) {
 
 void Messages::message(const std::vector<std::string> &headers, const std::vector<std::string> &bodyes) {
 	std::vector<std::string> startLine = utils::split(headers[0], " ");
-	
+
 	std::string method = startLine[0];
 	if (method != "GET")
 		return;
@@ -33,6 +33,9 @@ void Messages::message(const std::vector<std::string> &headers, const std::vecto
 	file.close();
 	if (std::find(headers.begin(), headers.end(), "Connection: close") != headers.end())
 		this->message_ += "Connection: close\n";
+	this->message_ += "Server: Melisha's server\n";
+	time_t timer = time(NULL);
+	this->message_ += "Date: " + std::string(std::ctime(&timer)) + "\n";
 	this->message_ += "Content-Length: " + std::to_string(vcFile.first) + "\n\n";
 	for (std::string line : vcFile.second)
 		message_ += line + "\n";
