@@ -43,10 +43,15 @@ public:
 		return send(this->socket_.fd, message.c_str(), message.size(), 0);
 	}
 
-	void recvMessage(std::string &result, std::function<void(int)> f) {
+	int recvMessage(std::string &result) {
 		char message[1024] = {0};
 		int readSize = recv(this->socket_.fd, message, 1024, 0);
 		result = std::string(message);
+		return readSize;
+	}
+
+	void recvMessage(std::string &result, std::function<void(int)> f) {
+		int readSize = this->recvMessage(result);
 		f(readSize <= 0);
 	}
 

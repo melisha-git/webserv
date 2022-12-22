@@ -6,25 +6,6 @@
 #include <fcntl.h>
 #include <poll.h>
 
-void newClient(std::vector<pollfd> &poll_sets, const Socket &newSocket) {
-	poll_sets.push_back(newSocket);
-	std::cout << "now_client_num: " << static_cast<unsigned int>(poll_sets.size() - 1) << std::endl;
-}
-
-void deleteClient(std::vector<pollfd> &poll_sets, int index) {
-	std::vector<pollfd>::iterator it = poll_sets.begin() + index;
-	poll_sets.erase(it, it);
-	std::cout << "no connect " << it->fd << std::endl;
-	close(it->fd);
-}
-
-int recvClient(const int &fd, std::string &result) {
-	char message[1024] = {0};
-	int readSize = recv(fd, message, 1024, 0);
-	result = std::string(message);
-	return readSize;
-}
-
 class Acceptor {
 private:
 	struct sockaddr_in	addr_;
@@ -33,6 +14,17 @@ private:
 	std::vector<pollfd>	clients_;
 public:
 
+
+	void deleteClient(const Socket &socket) {
+		std::vector<pollfd>::iterator it = clients_.begin();
+		for (;it != clients_.end(); ++it) {
+			if (it->fd == static_cast<pollfd>(socket).fd) {
+				clients_.erase(it, it);
+				std::cout << "no connect " << it->fd << std::endl;
+				close(it->fd);
+			}
+		}
+	}
 
 	Acceptor(int port) {
 		this->addr_.sin_family = AF_INET;
@@ -50,35 +42,27 @@ public:
 		return this->listen_;
 	}
 
-	void Accept(Socket &socket, std::function<void(int)> t) {
+	void Accept(Socket &socket, std::function<void(int)> f) {
 		while (this->_poll()) {
 			for (int i = 0; i < clients_.size(); ++i) {
 				if (clients_[i].revents & POLLIN) {
-					if (clients_[i].fd == static_cast<pollfd>(this->listen_).fd) {
+					if (i == 0) {
 						socket = accept(static_cast<pollfd>(listen_).fd, reinterpret_cast<struct sockaddr*>(&this->addr_), &this->addrSize_);
-						if (static_cast<pollfd>(socket).fd > 0)
-							newClient(clients_, socket);
+						if (static_cast<pollfd>(socket).fd > 0) {
+							clients_.push_back(socket);
+							std::cout << "now_client_num: " << static_cast<unsigned int>(clients_.size() - 1) << std::endl;
+						}
 					} else {
 						socket = clients_[i].fd;
-						std::string message;
-
-						socket.recvMessage(message, [&message, this, i, &socket](int error){
-							if (error)
-								deleteClient(clients_, i);
-							else {
-								message = "=> Client " + std::to_string(clients_[i].fd) + ": " + message;
-								std::cout << message;
-								message = "Server: \n";
-								socket.sendMessage(message);
-							}
-						});
+						f(0);
 					}
 				} else if (clients_[i].revents & POLLERR) {
-					if (clients_[i].fd == static_cast<pollfd>(this->listen_).fd) {
-						std::cerr << "listen socket error\n";
-						exit(1);
-					} else
-						deleteClient(clients_, i);
+					socket = clients_[i].fd;
+					if (clients_[i].fd == static_cast<pollfd>(this->listen_).fd)
+						throw Exception("Listen socket error\n");
+					else
+						this->deleteClient(socket);
+					f(1);
 				}
 			}
 		}
@@ -106,7 +90,7 @@ private:
 	}
 
 	bool _poll() {
-		int result = poll(dynamic_cast<pollfd *>(&clients_[0]), (unsigned int)clients_.size(), -1);
+		int result = poll(dynamic_cast<pollfd *>(&clients_[0]), (unsigned int)clients_.size(), 10000);
 		return result > 0;
 	}
 };
