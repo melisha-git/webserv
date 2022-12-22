@@ -2,7 +2,9 @@
 
 #include "SocketClass.hpp"
 #include <netinet/in.h>
+#include <functional>
 #include <fcntl.h>
+#include <poll.h>
 
 class Acceptor {
 private:
@@ -28,15 +30,18 @@ public:
 		return static_cast<int>(this->listen_);
 	}
 
-	void Accept(int &socket, void (function)(int)) {
+	void Accept(Socket &socket, std::function<void(int)> t) {
 		socket = accept(static_cast<int>(listen_), reinterpret_cast<struct sockaddr*>(&this->addr_), &this->addrSize_);
-		function(socket == -1 ? 1 : 0);
+		t(socket == -1 ? 1 : 0);
 	}
 
 private:
 	void _binding(const int &socket) {
 		if ((bind(socket, reinterpret_cast<struct sockaddr*>(&this->addr_), this->addrSize_)) == -1)
 			throw Exception("Error binding connection. Socket already been establishing.\n");
+	}
+
+	static void _start() {
 	}
 
 	void _listening(const int &socket) {

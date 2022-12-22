@@ -32,6 +32,10 @@ public:
 		return this->socket_;
 	}
 
+	int sendMessage(const std::string &message) {
+		return send(this->socket_, message.c_str(), message.size(), 0);
+	}
+
 	~Socket() {
 		close(this->socket_);
 	}
