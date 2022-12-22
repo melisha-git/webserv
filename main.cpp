@@ -19,11 +19,8 @@
 #define SERVER_IP "127.0.0.1"
 #define BUFFER_SIZE 1024
 
-void newClient(std::vector<pollfd> &poll_sets, const int &newSocket) {
-	pollfd client_pollfd;
-	client_pollfd.fd = newSocket;
-	client_pollfd.events = POLLIN;
-	poll_sets.push_back(client_pollfd);
+void newClient(std::vector<pollfd> &poll_sets, const Socket &newSocket) {
+	poll_sets.push_back(newSocket);
 	std::cout << "now_client_num: " << static_cast<unsigned int>(poll_sets.size() - 1) << std::endl;
 }
 
@@ -45,7 +42,7 @@ int main(int argc, char **argv) {
 	Acceptor accept(DEFAULT_PORT);
 	
 	std::vector<pollfd>	poll_sets;
-	newClient(poll_sets, static_cast<int>(accept.getListen()));
+	newClient(poll_sets, accept.getListen());
 	Socket newSocket;
 	while (1) {
 		int ret = poll(dynamic_cast<pollfd *>(&poll_sets[0]), (unsigned int)poll_sets.size(), -1);
@@ -56,12 +53,12 @@ int main(int argc, char **argv) {
 
 		for (int i = 0; i < poll_sets.size(); ++i) {
 			if (poll_sets[i].revents & POLLIN) {
-				if (poll_sets[i].fd == static_cast<int>(accept.getListen())) {
+				if (poll_sets[i].fd == static_cast<pollfd>(accept.getListen()).fd) {
 					accept.Accept(newSocket, [&newSocket, &poll_sets](int error) {
 						if (error)
 							return;
 						else
-							newClient(poll_sets, static_cast<int>(newSocket));
+							newClient(poll_sets, newSocket);
 					});
 				} else {
 					newSocket = poll_sets[i].fd;
@@ -77,7 +74,7 @@ int main(int argc, char **argv) {
 					}
 				}
 			} else if (poll_sets[i].revents & POLLERR) {
-				if (poll_sets[i].fd == static_cast<int>(accept.getListen())) {
+				if (poll_sets[i].fd == static_cast<pollfd>(accept.getListen()).fd) {
 					std::cerr << "listen socket error\n";
 					exit(1);
 				} else

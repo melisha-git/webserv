@@ -20,17 +20,17 @@ public:
 		this->addr_.sin_addr.s_addr = htonl(INADDR_ANY);
 		this->addrSize_ = sizeof(this->addr_);
 
-		this->_setSockOpt(static_cast<int>(listen_));
-		this->_binding(static_cast<int>(listen_));
-		this->_listening(static_cast<int>(listen_));
+		this->_setSockOpt(static_cast<pollfd>(listen_).fd);
+		this->_binding(static_cast<pollfd>(listen_).fd);
+		this->_listening(static_cast<pollfd>(listen_).fd);
 	}
 
-	int getListen() {
-		return static_cast<int>(this->listen_);
+	Socket &getListen() {
+		return this->listen_;
 	}
 
 	void Accept(Socket &socket, std::function<void(int)> t) {
-		socket = accept(static_cast<int>(listen_), reinterpret_cast<struct sockaddr*>(&this->addr_), &this->addrSize_);
+		socket = accept(static_cast<pollfd>(listen_).fd, reinterpret_cast<struct sockaddr*>(&this->addr_), &this->addrSize_);
 		t(socket == -1 ? 1 : 0);
 	}
 
