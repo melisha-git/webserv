@@ -23,7 +23,6 @@ public:
 		this->_setSockOpt(static_cast<int>(listen_));
 		this->_binding(static_cast<int>(listen_));
 		this->_listening(static_cast<int>(listen_));
-		fcntl(static_cast<int>(listen_), F_SETFL, fcntl(static_cast<int>(listen_), F_GETFL) | O_NONBLOCK);
 	}
 
 	int getListen() {

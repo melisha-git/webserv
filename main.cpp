@@ -27,7 +27,8 @@ void newClient(std::vector<pollfd> &poll_sets, const int &newSocket) {
 	std::cout << "now_client_num: " << static_cast<unsigned int>(poll_sets.size() - 1) << std::endl;
 }
 
-void deleteClient(std::vector<pollfd> &poll_sets, std::vector<pollfd>::iterator &it) {
+void deleteClient(std::vector<pollfd> &poll_sets, int index) {
+	std::vector<pollfd>::iterator it = poll_sets.begin() + index;
 	poll_sets.erase(it, it);
 	std::cout << "no connect " << it->fd << std::endl;
 	close(it->fd);
@@ -52,11 +53,10 @@ int main(int argc, char **argv) {
 			std::cerr << "poll error\n";
 			exit(1);
 		}
-		std::vector<pollfd>::iterator it;
-		std::vector<pollfd>::iterator end = poll_sets.end();
-		for (it = poll_sets.begin(); it != end; it++) {
-			if (it->revents & POLLIN) {
-				if (it->fd == static_cast<int>(accept.getListen())) {
+
+		for (int i = 0; i < poll_sets.size(); ++i) {
+			if (poll_sets[i].revents & POLLIN) {
+				if (poll_sets[i].fd == static_cast<int>(accept.getListen())) {
 					accept.Accept(newSocket, [&newSocket, &poll_sets](int error) {
 						if (error)
 							return;
@@ -64,24 +64,24 @@ int main(int argc, char **argv) {
 							newClient(poll_sets, static_cast<int>(newSocket));
 					});
 				} else {
-					newSocket = it->fd;
+					newSocket = poll_sets[i].fd;
 					std::string message;
 
-					if (recvClient(it->fd, message) <= 0)
-						deleteClient(poll_sets, it);
+					if (recvClient(poll_sets[i].fd, message) <= 0)
+						deleteClient(poll_sets, i);
 					else {
-						message = "=> Client " + std::to_string(it->fd) + ": " + message;
+						message = "=> Client " + std::to_string(poll_sets[i].fd) + ": " + message;
 						std::cout << message;
 						message = "Server: \n";
 						newSocket.sendMessage(message);
 					}
 				}
-			} else if (it->revents & POLLERR) {
-				if (it->fd == static_cast<int>(accept.getListen())) {
+			} else if (poll_sets[i].revents & POLLERR) {
+				if (poll_sets[i].fd == static_cast<int>(accept.getListen())) {
 					std::cerr << "listen socket error\n";
 					exit(1);
 				} else
-					deleteClient(poll_sets, it);
+					deleteClient(poll_sets, i);
 			}
 		}
 	}

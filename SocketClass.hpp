@@ -13,10 +13,12 @@ public:
 		this->socket_ = socket(AF_INET, SOCK_STREAM, 0);
 		if (this->socket_ == -1)
 			throw Exception("Establishing socket error\n");
+		fcntl(static_cast<int>(socket_), F_SETFL, fcntl(static_cast<int>(socket_), F_GETFL) | O_NONBLOCK);
 	}
 
 	Socket(const int &socket) {
 		*this = socket;
+		fcntl(static_cast<int>(socket_), F_SETFL, fcntl(static_cast<int>(socket_), F_GETFL) | O_NONBLOCK);
 	}
 
 	Socket &operator=(const int &socket) {
