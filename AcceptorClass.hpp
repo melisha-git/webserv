@@ -62,14 +62,16 @@ public:
 						socket = clients_[i].fd;
 						std::string message;
 
-						if (recvClient(clients_[i].fd, message) <= 0)
-							deleteClient(clients_, i);
-						else {
-							message = "=> Client " + std::to_string(clients_[i].fd) + ": " + message;
-							std::cout << message;
-							message = "Server: \n";
-							socket.sendMessage(message);
-						}
+						socket.recvMessage(message, [&message, this, i, &socket](int error){
+							if (error)
+								deleteClient(clients_, i);
+							else {
+								message = "=> Client " + std::to_string(clients_[i].fd) + ": " + message;
+								std::cout << message;
+								message = "Server: \n";
+								socket.sendMessage(message);
+							}
+						});
 					}
 				} else if (clients_[i].revents & POLLERR) {
 					if (clients_[i].fd == static_cast<pollfd>(this->listen_).fd) {

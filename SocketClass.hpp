@@ -3,6 +3,7 @@
 #include "ExceptionClass.hpp"
 #include <unistd.h>
 #include <sys/socket.h>
+#include <functional>
 #include <poll.h>
 
 class Socket {
@@ -40,6 +41,13 @@ public:
 
 	int sendMessage(const std::string &message) {
 		return send(this->socket_.fd, message.c_str(), message.size(), 0);
+	}
+
+	void recvMessage(std::string &result, std::function<void(int)> f) {
+		char message[1024] = {0};
+		int readSize = recv(this->socket_.fd, message, 1024, 0);
+		result = std::string(message);
+		f(readSize <= 0);
 	}
 
 	~Socket() {
