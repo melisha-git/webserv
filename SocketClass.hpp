@@ -20,11 +20,13 @@ public:
 
 	Socket(const int &socket) {
 		*this = socket;
+		this->socket_.events = POLLIN;
 		fcntl(static_cast<int>(socket_.fd), F_SETFL, fcntl(static_cast<int>(socket_.fd), F_GETFL) | O_NONBLOCK);
 	}
 
 	Socket &operator=(const int &socket) {
 		this->socket_.fd = socket;
+		this->socket_.events = POLLIN;
 		return (*this);
 	}
 
