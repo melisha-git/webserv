@@ -2,9 +2,12 @@
 
 #include "SocketClass.hpp"
 #include <netinet/in.h>
+#include <algorithm>
 #include <functional>
 #include <fcntl.h>
 #include <poll.h>
+#include <vector>
+#include <list>
 
 class Acceptor {
 private:
@@ -13,18 +16,6 @@ private:
 	Socket				listen_;
 	std::vector<pollfd>	clients_;
 public:
-
-
-	void deleteClient(const Socket &socket) {
-		std::vector<pollfd>::iterator it = clients_.begin();
-		for (;it != clients_.end(); ++it) {
-			if (it->fd == static_cast<pollfd>(socket).fd) {
-				clients_.erase(it, it);
-				std::cout << "no connect " << it->fd << std::endl;
-				close(it->fd);
-			}
-		}
-	}
 
 	Acceptor(int port) {
 		this->addr_.sin_family = AF_INET;
@@ -45,31 +36,44 @@ public:
 	void Accept(Socket &socket, std::function<void(int)> f) {
 		while (this->_poll()) {
 			for (int i = 0; i < clients_.size(); ++i) {
-				if (clients_[i].revents & POLLIN) {
-					if (i == 0) {
-						socket = accept(static_cast<pollfd>(listen_).fd, reinterpret_cast<struct sockaddr*>(&this->addr_), &this->addrSize_);
-						if (static_cast<pollfd>(socket).fd > 0) {
-							clients_.push_back(socket);
-							std::cout << "now_client_num: " << static_cast<unsigned int>(clients_.size() - 1) << std::endl;
-						}
-					} else {
-						socket = clients_[i].fd;
-						f(0);
+				int code = 0;
+				if (clients_[i].revents & POLLIN && i == 0) {
+					socket = accept(static_cast<pollfd>(listen_).fd, reinterpret_cast<struct sockaddr*>(&this->addr_), &this->addrSize_);
+					if (static_cast<pollfd>(socket).fd > 0) {
+						clients_.push_back(socket);
+						std::cout << "now_client_num: " << static_cast<unsigned int>(clients_.size() - 1) << std::endl;
 					}
 				} else if (clients_[i].revents & POLLERR) {
-					socket = clients_[i].fd;
 					if (clients_[i].fd == static_cast<pollfd>(this->listen_).fd)
 						throw Exception("Listen socket error\n");
-					else
-						this->deleteClient(socket);
-					f(1);
+					code = 1;
+				} 
+				if (i != 0 && (clients_[i].revents & POLLIN || clients_[i].revents & POLLERR)) {
+					socket = clients_[i].fd;
+					try {
+						f(code);
+					} catch (const Exception &ex) {
+						this->_delete(i);
+					}
 				}
 			}
 		}
-		//t(socket == -1 ? 1 : 0);
 	}
 
 private:
+	void _delete(int index) {
+		std::list<pollfd> copy{clients_.begin(), clients_.end()};
+		for (auto it = copy.begin(); it != copy.end(); ++it) {
+			if (it->fd == clients_[index].fd) {
+				copy.erase(it);
+				std::cout << "no connect " << (clients_.begin() + index)->fd << std::endl;
+				close((clients_.begin() + index)->fd);
+			}
+		}
+		clients_.clear();
+		clients_ = {copy.begin(), copy.end()};
+	}
+
 	void _binding(const int &socket) {
 		if ((bind(socket, reinterpret_cast<struct sockaddr*>(&this->addr_), this->addrSize_)) == -1)
 			throw Exception("Error binding connection. Socket already been establishing.\n");
@@ -90,7 +94,7 @@ private:
 	}
 
 	bool _poll() {
-		int result = poll(dynamic_cast<pollfd *>(&clients_[0]), (unsigned int)clients_.size(), 10000);
+		int result = poll(dynamic_cast<pollfd *>(&clients_[0]), (unsigned int)clients_.size(), -1);
 		return result > 0;
 	}
 };

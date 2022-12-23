@@ -2,9 +2,11 @@
 
 #include "ExceptionClass.hpp"
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <functional>
 #include <poll.h>
+#include <iostream>
 
 class Socket {
 protected:
