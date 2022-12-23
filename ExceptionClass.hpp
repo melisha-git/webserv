@@ -10,4 +10,8 @@ public:
 	virtual const char *what() const throw() {
 		return this->exception_.c_str();
 	}
+
+	virtual ~Exception() throw() {
+
+	}
 };
