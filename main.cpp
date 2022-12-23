@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 		src.recvMessage(message, [&message, &acceptor, &src](int error) {
 			if (error)
 				throw Exception("No read bytes\n");
-			message = "=> Client " + std::to_string(src.operator pollfd().fd) + ": " + message;
+			message = "=> Client " + src.operator pollfd().fd + std::string(" ") + message;
 			std::cout << message;
 			message = "Server: \n";
 			src.sendMessage(message);

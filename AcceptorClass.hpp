@@ -63,7 +63,7 @@ public:
 private:
 	void _delete(int index) {
 		std::list<pollfd> copy{clients_.begin(), clients_.end()};
-		for (auto it = copy.begin(); it != copy.end(); ++it) {
+		for (std::list<pollfd>::iterator it = copy.begin(); it != copy.end(); ++it) {
 			if (it->fd == clients_[index].fd) {
 				copy.erase(it);
 				std::cout << "no connect " << (clients_.begin() + index)->fd << std::endl;
