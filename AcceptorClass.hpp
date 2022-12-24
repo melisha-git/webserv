@@ -29,6 +29,11 @@ public:
 		clients_.push_back(listen_);
 	}
 
+	Acceptor() = delete;
+	Acceptor(const Acceptor &) = delete;
+
+	Acceptor &operator=(const Acceptor &) = delete;
+
 	Socket &getListen() {
 		return this->listen_;
 	}
@@ -58,6 +63,11 @@ public:
 				}
 			}
 		}
+	}
+
+	~Acceptor() {
+		for (pollfd f : clients_)
+			close(f.fd);
 	}
 
 private:

@@ -11,10 +11,13 @@ public:
 	Status() = delete;
 	Status(const Status &) = delete;
 
+	Status &operator=(const Status &) = delete;
+
 	std::string getStatus() const {
 		return this->status_;
 	}
 
+	~Status() {}
 private:
 	std::string _getString(int status) {
 		std::string result;

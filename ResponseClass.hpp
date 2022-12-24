@@ -16,7 +16,10 @@ public:
 		startLine_ = version + Status(404).getStatus();
 	}
 
-	// INT STATUS
+	Response(const Response &) = delete;
+
+	Response &operator=(const Response &) = delete;
+
 	void setStartLine(const Status &status, const std::string &version = "HTTP/1.1") {
 		startLine_ = version + " " + status.getStatus();
 	}
@@ -31,13 +34,6 @@ public:
 		file.close();
 	}
 
-	size_t getBodySize() const {
-		size_t size = 0;
-		for (std::string s : this->body_)
-			size += s.size();
-		return size;
-	}
-
 	void setBody(std::ifstream &file) {
 		if (!file.is_open())
 			throw ("File not open\n");
@@ -45,6 +41,14 @@ public:
 		while (std::getline(file, line))
 			this->body_.push_back(line);
 	}
+
+	size_t getBodySize() const {
+		size_t size = 0;
+		for (std::string s : this->body_)
+			size += s.size();
+		return size;
+	}
+
 
 	operator std::string() {
 		std::string response = startLine_ + "\n";
@@ -55,4 +59,6 @@ public:
 			response += line + "\n";
 		return response;
 	}
+
+	~Response() {}
 };
