@@ -12,16 +12,21 @@ private:
 	std::map<std::string, std::string> headers_;
 	std::vector<std::string> body_;
 public:
-	Response(const std::string &version = "HTTP/1.1") {
-		startLine_ = version + Status(404).getStatus();
+	Response(const std::string &request) {
+		this->setBody("./index.html");
+		this->setHeader("Server", "bebrochka");
+		this->setHeader("Content-Length", std::to_string(this->getBodySize()));
+		this->setHeader("Content-Type", "text/html");
+		this->setHeader("Connection", "close");
+		this->setStartLine(200);
 	}
 
 	Response(const Response &) = delete;
 
 	Response &operator=(const Response &) = delete;
 
-	void setStartLine(const Status &status, const std::string &version = "HTTP/1.1") {
-		startLine_ = version + " " + status.getStatus();
+	void setStartLine(const int &status, const std::string &version = "HTTP/1.1") {
+		startLine_ = version + " " + Status::getStatus(status);
 	}
 
 	void setHeader(const std::string &header, const std::string &params) {

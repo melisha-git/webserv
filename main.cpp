@@ -7,19 +7,13 @@ int main(int argc, char **argv) {
 	Socket src;
 	acceptor.Accept(src, [&src, &acceptor](int error) {
 		if (error)
-			throw Exception("No accept socket\n");
+			return;
 		std::string message;
 
 		src.recvMessage(message, [&message, &acceptor, &src](int error) {
 			if (error)
-				throw Exception("No read bytes\n");
-			Response res;
-			res.setBody("./index.html");
-			res.setHeader("Server", "bebrochka");
-			res.setHeader("Content-Length", std::to_string(res.getBodySize()));
-			res.setHeader("Content-Type", "text/html");
-			res.setHeader("Connection", "close");
-			res.setStartLine(Status(202));
+				return;
+			Response res(message);
 			message = res;
 			src.sendMessage(message);
 		});
