@@ -47,7 +47,7 @@ public:
 					if (clients_[i].fd == static_cast<pollfd>(this->listen_).fd)
 						throw Exception("Listen socket error\n");
 					code = 1;
-				} 
+				}
 				if (i != 0 && (clients_[i].revents & POLLIN || clients_[i].revents & POLLERR)) {
 					socket = clients_[i].fd;
 					try {

@@ -1,4 +1,5 @@
 #include "AcceptorClass.hpp"
+#include "ResponseClass.hpp"
 
 int main(int argc, char **argv) {
 	Acceptor acceptor(1602);
@@ -12,9 +13,14 @@ int main(int argc, char **argv) {
 		src.recvMessage(message, [&message, &acceptor, &src](int error) {
 			if (error)
 				throw Exception("No read bytes\n");
-			message = "=> Client " + src.operator pollfd().fd + std::string(" ") + message;
-			std::cout << message;
-			message = "Server: \n";
+			Response res;
+			res.setBody("./index.html");
+			res.setHeader("Server", "bebrochka");
+			res.setHeader("Content-Length", std::to_string(res.getBodySize()));
+			res.setHeader("Content-Type", "text/html");
+			res.setHeader("Connection", "close");
+			res.setStartLine(Status(202));
+			message = res;
 			src.sendMessage(message);
 		});
 	});
