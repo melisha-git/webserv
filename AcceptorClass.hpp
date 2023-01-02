@@ -38,7 +38,7 @@ public:
 		return this->listen_;
 	}
 
-	void Accept(Socket &socket, std::function<void(int)> f) {
+	void Accept(Socket &socket, void(*f)(int, Socket &)) {
 		while (this->_poll()) {
 			for (int i = 0; i < clients_.size(); ++i) {
 				int code = 0;
@@ -56,7 +56,7 @@ public:
 					this->_delete(i);
 				if (i != 0 && (clients_[i].revents & POLLIN || clients_[i].revents & POLLERR)) {
 					socket = clients_[i].fd;
-					f(code);
+					f(code, socket);
 				}
 			}
 		}

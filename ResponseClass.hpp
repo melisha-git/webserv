@@ -49,8 +49,9 @@ public:
 
 	size_t getBodySize() const {
 		size_t size = 0;
-		for (std::string s : this->body_)
-			size += s.size();
+		std::vector<std::string>::const_iterator it = (this->body_).begin();
+		for (;it < this->body_.end(); ++it)
+			size += it->size();
 		return size;
 	}
 

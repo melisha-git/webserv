@@ -61,9 +61,9 @@ public:
 		return readSize;
 	}
 
-	void recvMessage(std::string &result, std::function<void(int)> f) {
+	void recvMessage(std::string &result, void(*f)(int, std::string, Socket &)) {
 		int readSize = this->recvMessage(result);
-		f(readSize <= 0);
+		f(readSize <= 0, result, *(this));
 	}
 
 	~Socket() {
